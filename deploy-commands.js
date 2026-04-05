@@ -21,7 +21,7 @@ const rest = new REST({ version: '10' }).setToken(token);
       { body: commands }
     );
 
-    console.log('✅ Commandy registrovány');
+    console.log('✅ Commands registered');
   } catch (error) {
     console.error(error);
   }

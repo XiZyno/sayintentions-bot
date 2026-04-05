@@ -4,10 +4,10 @@ const { getTaf } = require('../services/sayintentions');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('taf')
-    .setDescription('Získá TAF pro letiště')
+    .setDescription('Gets airport TAF')
     .addStringOption(option =>
       option.setName('icao')
-        .setDescription('ICAO kód letiště')
+        .setDescription('Airport ICAO code')
         .setRequired(true)
     ),
 
@@ -15,7 +15,7 @@ module.exports = {
     const icao = interaction.options.getString('icao').toUpperCase();
 
     if (!/^[A-Z]{4}$/.test(icao)) {
-      return interaction.reply('❌ Neplatný ICAO kód.');
+      return interaction.reply('❌ Invalid ICAO code.');
     }
 
     await interaction.deferReply();
@@ -23,7 +23,7 @@ module.exports = {
     const data = await getTaf(icao);
 
     if (!data || !data.taf) {
-      return interaction.editReply('❌ TAF není dostupný.');
+      return interaction.editReply('❌ TAF not available.');
     }
 
     const embed = new EmbedBuilder()

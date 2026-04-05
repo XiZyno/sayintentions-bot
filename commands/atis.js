@@ -4,10 +4,10 @@ const { getAtis } = require('../services/sayintentions');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('atis')
-    .setDescription('Získá ATIS pro letiště')
+    .setDescription('Gets an airport ATIS')
     .addStringOption(option =>
       option.setName('icao')
-        .setDescription('ICAO kód letiště')
+        .setDescription('Airport ICAO Code')
         .setRequired(true)
     ),
 
@@ -15,7 +15,7 @@ module.exports = {
     const icao = interaction.options.getString('icao').toUpperCase();
 
     if (!/^[A-Z]{4}$/.test(icao)) {
-      return interaction.reply('❌ Neplatný ICAO kód.');
+      return interaction.reply('❌ Invalid ICAO Code.');
     }
 
     await interaction.deferReply();
@@ -23,7 +23,7 @@ module.exports = {
     const data = await getAtis(icao);
 
     if (!data || !data.atis) {
-      return interaction.editReply('❌ ATIS není dostupný.');
+      return interaction.editReply('❌ ATIS not available.');
     }
 
     const embed = new EmbedBuilder()

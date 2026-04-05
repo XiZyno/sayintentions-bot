@@ -4,10 +4,10 @@ const { getMetar, getTaf, getAtis } = require('../services/sayintentions');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('briefing')
-    .setDescription('Získá kompletní briefing (ATIS, METAR, TAF)')
+    .setDescription('Gets a complete briefing (ATIS, METAR, TAF)')
     .addStringOption(option =>
       option.setName('icao')
-        .setDescription('ICAO kód letiště')
+        .setDescription('Airport ICAO Code')
         .setRequired(true)
     ),
 
@@ -15,13 +15,13 @@ module.exports = {
     const icao = interaction.options.getString('icao').toUpperCase();
 
     if (!/^[A-Z]{4}$/.test(icao)) {
-      return interaction.reply('❌ Neplatný ICAO kód.');
+      return interaction.reply('❌ Invalid ICAO code.');
     }
 
     await interaction.deferReply();
 
     try {
-      // zavoláme API (klidně 3x, nebo optimalizujeme později)
+      // calls API
       const [metarData, tafData, atisData] = await Promise.all([
         getMetar(icao),
         getTaf(icao),
@@ -29,7 +29,7 @@ module.exports = {
       ]);
 
       if (!metarData && !tafData && !atisData) {
-        return interaction.editReply('❌ Nepodařilo se získat data.');
+        return interaction.editReply('❌ Could not get any data.');
       }
 
       const embed = new EmbedBuilder()
@@ -42,7 +42,7 @@ module.exports = {
         name: '📡 ATIS',
         value: atisData?.atis
           ? `\`\`\`${atisData.atis.slice(0, 1000)}\`\`\``
-          : 'Není dostupné'
+          : 'Not available'
       });
 
       // METAR
@@ -50,7 +50,7 @@ module.exports = {
         name: '✈️ METAR',
         value: metarData?.metar
           ? `\`\`\`${metarData.metar}\`\`\``
-          : 'Není dostupné'
+          : 'Not available'
       });
 
       // TAF
@@ -58,14 +58,14 @@ module.exports = {
         name: '🌦 TAF',
         value: tafData?.taf
           ? `\`\`\`${tafData.taf.slice(0, 1000)}\`\`\``
-          : 'Není dostupné'
+          : 'Not available'
       });
 
       await interaction.editReply({ embeds: [embed] });
 
     } catch (err) {
       console.error("❌ Briefing error:", err);
-      await interaction.editReply('❌ Chyba při získávání dat.');
+      await interaction.editReply('❌ Error during getting a data.');
     }
   }
 };

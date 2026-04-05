@@ -4,16 +4,16 @@ const { getMetar } = require('../services/sayintentions');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('metar')
-    .setDescription('Získá METAR pro letiště')
+    .setDescription('Gets an airport METAR')
     .addStringOption(option =>
       option.setName('icao')
-        .setDescription('ICAO kód letiště')
+        .setDescription('Airport ICAO code')
         .setRequired(true)
     ),
 
   async execute(interaction) {
   try {
-    console.log("🚀 Command spuštěn");
+    console.log("🚀 Started command");
 
     const icao = interaction.options.getString('icao').toUpperCase();
     console.log("ICAO:", icao);
@@ -25,13 +25,13 @@ module.exports = {
     console.log("📡 DATA:", data);
 
     if (!data) {
-      console.log("❌ data je null");
-      return interaction.editReply('❌ Žádná data z API.');
+      console.log("❌ data is null");
+      return interaction.editReply('❌ No data from API.');
     }
 
     if (!data.metar) {
-      console.log("❌ není metar");
-      return interaction.editReply('❌ METAR není dostupný.');
+      console.log("❌ no metar");
+      return interaction.editReply('❌ METAR not available.');
     }
 
     console.log("✅ posílám odpověď");
@@ -41,7 +41,7 @@ module.exports = {
   } catch (err) {
     console.error("❌ ERROR:", err);
     try {
-      await interaction.editReply('❌ Chyba.');
+      await interaction.editReply('❌ Error.');
     } catch {}
   }
 }

@@ -14,29 +14,29 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// načtení commandů
+// command load
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath);
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
 
-  // kontrola jestli má data + execute
+  // controls if there's data + execute
   if (!command.data || !command.execute) {
-    console.log(`❌ Chybný command: ${file}`);
+    console.log(`❌ Wrong command: ${file}`);
     continue;
   }
 
   client.commands.set(command.data.name, command);
-  console.log(`✅ Načten command: ${command.data.name}`);
+  console.log(`✅ Loaded command: ${command.data.name}`);
 }
 
 // bot ready
-client.once('ready', () => {
-  console.log(`🟢 Bot přihlášen jako ${client.user.tag}`);
+client.once('clientReady', () => {
+  console.log(`🟢 Bot logged in as ${client.user.tag}`);
 });
 
-// poslouchání commandů
+// listening for commands
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -45,22 +45,22 @@ client.on('interactionCreate', async interaction => {
   const command = client.commands.get(interaction.commandName);
 
   if (!command) {
-    console.log('❌ Command nenalezen');
+    console.log('❌ Command not found');
     return;
   }
 
   try {
     await command.execute(interaction);
   } catch (error) {
-    console.error('❌ ERROR při execute:', error);
+    console.error('❌ ERROR during execute:', error);
 
     if (interaction.deferred || interaction.replied) {
-      await interaction.editReply('❌ Nastala chyba.');
+      await interaction.editReply('❌ Something went wrong.');
     } else {
-      await interaction.reply('❌ Nastala chyba.');
+      await interaction.reply('❌ Something went wrong.');
     }
   }
 });
 
-// přihlášení
+// login
 client.login(token);
