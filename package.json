@@ -4,13 +4,15 @@
   "description": "SayIntentions.AI Bot",
   "main": "index.js",
   "scripts": {
-    "start" : "node index.js"
+    "start": "node index.js"
   },
   "author": "XiZyno",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/voice": "^0.19.2",
     "axios": "^1.14.0",
     "discord.js": "^14.26.2",
-    "dotenv": "^17.4.0"
+    "dotenv": "^17.4.0",
+    "gtts": "^0.2.1"
   }
 }
