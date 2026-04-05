@@ -3,7 +3,12 @@ const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@d
 const gTTS = require('gtts');
 const fs = require('fs');
 const path = require('path');
+const ffmpeg = require('ffmpeg-static');
 const { getAtis } = require('../services/sayintentions');
+const { createAudioResource, StreamType } = require('@discordjs/voice');
+const { createReadStream } = require('fs');
+require('ffmpeg-static');
+resource.volume.setVolume(30);
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,6 +21,8 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    await interaction.deferReply();
+
     const icao = interaction.options.getString('icao').toUpperCase();
 
     const channel = interaction.member.voice.channel;
@@ -23,8 +30,6 @@ module.exports = {
     if (!channel) {
       return interaction.reply('❌ You need to be in a voice channel!');
     }
-
-    await interaction.deferReply();
 
     const data = await getAtis(icao);
 
@@ -54,7 +59,12 @@ module.exports = {
       });
 
       const player = createAudioPlayer();
-      const resource = createAudioResource(filePath);
+      const { createReadStream } = require('fs');
+
+      const resource = createAudioResource(createReadStream(filePath), {
+        inputType: StreamType.Arbitrary,
+        inlineVolume: true
+      });
 
       player.play(resource);
       connection.subscribe(player);
