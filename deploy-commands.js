@@ -17,7 +17,7 @@ const rest = new REST({ version: '10' }).setToken(token);
     console.log('⏳ Registruji commandy...');
 
     await rest.put(
-      Routes.applicationCommands(clientId),
+      Routes.applicationGuildCommands(clientId, guildId),
       { body: commands }
     );
 

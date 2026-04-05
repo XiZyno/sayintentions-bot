@@ -49,6 +49,8 @@ module.exports = {
         channelId: channel.id,
         guildId: interaction.guild.id,
         adapterCreator: interaction.guild.voiceAdapterCreator,
+        selfDeaf: false,
+        selfMute: false,
       });
 
       const player = createAudioPlayer();
