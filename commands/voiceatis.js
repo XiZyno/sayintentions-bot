@@ -1,14 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, StreamType } = require('@discordjs/voice');
 const gTTS = require('gtts');
 const fs = require('fs');
 const path = require('path');
-const ffmpeg = require('ffmpeg-static');
-const { getAtis } = require('../services/sayintentions');
-const { createAudioResource, StreamType } = require('@discordjs/voice');
-const { createReadStream } = require('fs');
 require('ffmpeg-static');
-resource.volume.setVolume(30);
+
+const { getAtis } = require('../services/sayintentions');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,11 +21,10 @@ module.exports = {
     await interaction.deferReply();
 
     const icao = interaction.options.getString('icao').toUpperCase();
-
     const channel = interaction.member.voice.channel;
 
     if (!channel) {
-      return interaction.reply('❌ You need to be in a voice channel!');
+      return interaction.editReply('❌ You need to be in a voice channel!');
     }
 
     const data = await getAtis(icao);
@@ -38,10 +34,11 @@ module.exports = {
     }
 
     const text = data.atis;
-
-    // audio file creation
     const filePath = path.join(__dirname, '../atis.mp3');
+
     const gtts = new gTTS(text, 'en');
+
+    console.log("🎤 Generating TTS...");
 
     gtts.save(filePath, (err) => {
       if (err) {
@@ -49,7 +46,8 @@ module.exports = {
         return interaction.editReply('❌ Error during voice generation.');
       }
 
-      // connect to voice channel
+      console.log("✅ TTS done");
+
       const connection = joinVoiceChannel({
         channelId: channel.id,
         guildId: interaction.guild.id,
@@ -59,19 +57,23 @@ module.exports = {
       });
 
       const player = createAudioPlayer();
-      const { createReadStream } = require('fs');
 
-      const resource = createAudioResource(createReadStream(filePath), {
+      const resource = createAudioResource(fs.createReadStream(filePath), {
         inputType: StreamType.Arbitrary,
         inlineVolume: true
       });
 
+      resource.volume.setVolume(1); // 🔥 volume
+
       player.play(resource);
       connection.subscribe(player);
 
-      interaction.editReply(`🔊 Přehrávám ATIS pro ${icao}`);
+      interaction.editReply(`🔊 Playing ATIS for ${icao}`);
 
-      // leave voice after ATIS playedback
+      player.on('error', error => {
+        console.error('❌ Player error:', error);
+      });
+
       player.on('idle', () => {
         connection.destroy();
         fs.unlinkSync(filePath);
