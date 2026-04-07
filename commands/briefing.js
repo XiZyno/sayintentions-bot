@@ -1,71 +1,50 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { getMetar, getTaf, getAtis } = require('../services/sayintentions');
+const { SlashCommandBuilder } = require('discord.js');
+const { getMetar } = require('../services/sayintentions');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('briefing')
-    .setDescription('Gets a complete briefing (ATIS, METAR, TAF)')
+    .setDescription('Získá kompletní briefing (ATIS, METAR, TAF)')
     .addStringOption(option =>
       option.setName('icao')
-        .setDescription('Airport ICAO Code')
+        .setDescription('ICAO kód letiště')
         .setRequired(true)
     ),
 
   async execute(interaction) {
-    const icao = interaction.options.getString('icao').toUpperCase();
-
-    if (!/^[A-Z]{4}$/.test(icao)) {
-      return interaction.reply('❌ Invalid ICAO code.');
-    }
-
     await interaction.deferReply();
 
-    try {
-      // calls API
-      const [metarData, tafData, atisData] = await Promise.all([
-        getMetar(icao),
-        getTaf(icao),
-        getAtis(icao)
-      ]);
+    const icao = interaction.options.getString('icao').toUpperCase();
 
-      if (!metarData && !tafData && !atisData) {
-        return interaction.editReply('❌ Could not get any data.');
-      }
+    const data = await getMetar(icao); // vrací celý objekt (atis, metar, taf)
 
-      const embed = new EmbedBuilder()
-        .setTitle(`✈️ Briefing ${icao}`)
-        .setColor(0x00AEFF)
-        .setTimestamp();
-
-      // ATIS
-      embed.addFields({
-        name: '📡 ATIS',
-        value: atisData?.atis
-          ? `\`\`\`${atisData.atis.slice(0, 1000)}\`\`\``
-          : 'Not available'
-      });
-
-      // METAR
-      embed.addFields({
-        name: '✈️ METAR',
-        value: metarData?.metar
-          ? `\`\`\`${metarData.metar}\`\`\``
-          : 'Not available'
-      });
-
-      // TAF
-      embed.addFields({
-        name: '🌦 TAF',
-        value: tafData?.taf
-          ? `\`\`\`${tafData.taf.slice(0, 1000)}\`\`\``
-          : 'Not available'
-      });
-
-      await interaction.editReply({ embeds: [embed] });
-
-    } catch (err) {
-      console.error("❌ Briefing error:", err);
-      await interaction.editReply('❌ Error during getting a data.');
+    if (!data) {
+      return interaction.editReply('❌ Nepodařilo se získat data.');
     }
+
+    const atis = data.atis || 'Není dostupné';
+    const metar = data.metar || 'Není dostupné';
+    const taf = data.taf || 'Není dostupné';
+
+    await interaction.editReply({
+      content:
+`✈️ BRIEFING ${icao}
+
+📡 ATIS:
+\`\`\`
+${atis}
+\`\`\`
+
+✈️ METAR:
+\`\`\`
+${metar}
+\`\`\`
+
+🌦 TAF:
+\`\`\`
+${taf}
+\`\`\``,
+      files: ['https://cdn.prod.website-files.com/677d9ab0efb4b38700f85ef5/6780ae5a9517f1701f1736c6_SayIntentions_Gold_Black_Long_Logo-p-2000.png']
+    });
   }
 };

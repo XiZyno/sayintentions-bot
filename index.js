@@ -36,29 +36,16 @@ client.once('clientReady', () => {
   console.log(`🟢 Bot logged in as ${client.user.tag}`);
 });
 
-// listening for commands
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  console.log(`📥 Command: ${interaction.commandName}`);
-
   const command = client.commands.get(interaction.commandName);
-
-  if (!command) {
-    console.log('❌ Command not found');
-    return;
-  }
+  if (!command) return;
 
   try {
     await command.execute(interaction);
   } catch (error) {
     console.error('❌ ERROR during execute:', error);
-
-    if (interaction.deferred || interaction.replied) {
-      await interaction.editReply('❌ Something went wrong.');
-    } else {
-      await interaction.reply('❌ Something went wrong.');
-    }
   }
 });
 
