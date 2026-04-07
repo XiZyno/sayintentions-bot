@@ -132,7 +132,7 @@ ${categoryColor} **${parsed.flightCategory}**
 ${windText}
 ${precipText}
 👁 Visibility: ${parsed.visibility}
-🌡 Temperature: ${parsed.temp}°C / Dewpoint: ${parsed.dew}°C
+🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)
 📊 Pressure: ${parsed.pressure}
 
 ${runwayText}
