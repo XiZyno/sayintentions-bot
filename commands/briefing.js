@@ -106,10 +106,9 @@ module.exports = {
       }
 
       // 🌧 PRECIPITATION
-      let precipText = "";
-      if (precipitation) {
-        precipText = `🌧 Precipitation: ${precipitation}`;
-      }
+      let precipText = precipitation
+        ? `🌧 Precipitation: ${precipitation}`
+        : `🌧 Precipitation: None`;
 
       await interaction.editReply({
         content:
@@ -120,10 +119,12 @@ module.exports = {
 ${data.atis || "N/A"}
 \`\`\`
 
+📊 METAR:
 \`\`\`
 ${data.metar || "N/A"}
 \`\`\`
 
+📈 TAF:
 \`\`\`
 ${data.taf || "N/A"}
 \`\`\`
