@@ -1,9 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { getMetar } = require('../services/sayintentions');
-const { parseMetar } = require('../utils/metarParser');
+const { parseMetar, getFlightCategoryColor } = require('../utils/metarParser');
 const { parseAtisRunways } = require('../utils/atisParser');
-const categoryColor = getFlightCategoryColor(parsed.flightCategory);
-const { getFlightCategoryColor } = require('../utils/metarParser');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,7 +18,6 @@ module.exports = {
 
     try {
       const icao = interaction.options.getString('icao').toUpperCase();
-
       const data = await getMetar(icao);
 
       if (!data) {
@@ -28,6 +25,7 @@ module.exports = {
       }
 
       const parsed = parseMetar(data.metar);
+      const categoryColor = getFlightCategoryColor(parsed.flightCategory);
       const atisParsed = parseAtisRunways(data.atis);
 
       let runwayText = "🛬 Runway: N/A";
@@ -49,21 +47,23 @@ module.exports = {
       if (atisParsed.departure && atisParsed.arrival) {
         const dep = formatRunway(atisParsed.departure);
         const arr = formatRunway(atisParsed.arrival);
-      
+
         if (dep.text === arr.text) {
-          runwayText = `🛬 Active Runways: ${dep.text}`;
+          runwayText = `🛬 Active Runway${dep.plural ? 's' : ''}: ${dep.text}`;
         } else {
           runwayText =
             `🛫 Departure Runway${dep.plural ? 's' : ''}: ${dep.text}\n` +
             `🛬 Arrival Runway${arr.plural ? 's' : ''}: ${arr.text}`;
         }
-      
+
       } else if (atisParsed.departure) {
-        runwayText = `🛫 Departure Runway: ${formatRunway(atisParsed.departure)}`;
-      
+        const dep = formatRunway(atisParsed.departure);
+        runwayText = `🛫 Departure Runway${dep.plural ? 's' : ''}: ${dep.text}`;
+
       } else if (atisParsed.arrival) {
-        runwayText = `🛬 Arrival Runway: ${formatRunway(atisParsed.arrival)}`;
-      
+        const arr = formatRunway(atisParsed.arrival);
+        runwayText = `🛬 Arrival Runway${arr.plural ? 's' : ''}: ${arr.text}`;
+
       } else if (data.active_runway) {
         runwayText = `🛬 Active Runway: ${data.active_runway}`;
       }
@@ -71,22 +71,37 @@ module.exports = {
       let cloudText = "";
       let ceilingText = "";
 
-      // if CAVOK → don't show anything
+      // hide clouds/ceiling if CAVOK
       if (parsed.visibility !== "CAVOK") {
-      
+
         if (parsed.clouds && parsed.clouds.length > 0) {
           cloudText = "☁ Clouds:\n";
-        
+
           parsed.clouds.forEach(c => {
             cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
           });
         } else {
           cloudText = "☁ Clouds: N/A";
         }
-      
+
         ceilingText = parsed.ceiling
           ? `📉 Ceiling: ${parsed.ceiling} ft`
           : "📉 Ceiling: None";
+      }
+
+      // 🌬 WIND TEXT (new ATIS style)
+      const windDirText = parsed.windDir === "VRB"
+        ? "Variable"
+        : `${parsed.windDir}°`;
+
+      let windText = `💨 Wind: ${windDirText} at ${parsed.windSpeed} kts`;
+
+      if (parsed.windGust) {
+        windText += ` gusting at ${parsed.windGust} kts`;
+      }
+
+      if (parsed.windVariableFrom) {
+        windText += ` (variable ${parsed.windVariableFrom}°–${parsed.windVariableTo}°)`;
       }
 
       await interaction.editReply({
@@ -107,7 +122,7 @@ ${data.taf || "N/A"}
 \`\`\`
 
 ${categoryColor} **${parsed.flightCategory}**
-💨 Wind: ${parsed.windDir === "VRB" ? "Variable" : parsed.windDir + "°"} / ${parsed.windSpeed} kt${parsed.windGust ? ` (gust ${parsed.windGust})` : ''}${parsed.windVariableFrom ? ` (variable ${parsed.windVariableFrom}°–${parsed.windVariableTo}°)` : ''}
+${windText}
 👁 Visibility: ${parsed.visibility}
 🌡 Temperature: ${parsed.temp}°C / Dewpoint: ${parsed.dew}°C
 📊 Pressure: ${parsed.pressure}
@@ -118,7 +133,7 @@ ${cloudText ? "\n" + cloudText : ""}
 ${ceilingText ? ceilingText : ""}
 `,
         files: [{
-          attachment: 'https://i.imgur.com/yourimage.png', // fix this please
+          attachment: 'https://i.imgur.com/yourimage.png', // dej sem real link
           name: 'briefing.png'
         }]
       });
