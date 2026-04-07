@@ -121,4 +121,4 @@ function getFlightCategoryColor(category) {
   }
 }
 
-module.exports = { parseMetar };
+module.exports = { parseMetar, getFlightCategoryColor };
