@@ -30,7 +30,7 @@ module.exports = {
       const atisParsed = parseAtisRunways(data.atis);
 
       // ✈ RUNWAY LOGIC
-      let runwayText = "🛬 Runway: N/A";
+      let runwayText = "🛬 Runway: Runway in use not reported, ask an ATC";
 
       const formatRunway = (rw) => {
         if (Array.isArray(rw)) {
@@ -90,15 +90,26 @@ module.exports = {
           : "📉 Ceiling: None";
       }
 
-      // 🌬 WIND (ATIS style)
+      // 🌬 WIND
       const windDirText = parsed.windDir === "VRB"
         ? "Variable"
         : `${parsed.windDir}°`;
 
-      let windText = `💨 Wind: ${windDirText} at ${parsed.windSpeed} kts`;
+      let windText = "";
 
-      if (parsed.windGust) {
-        windText += ` gusting at ${parsed.windGust} kts`;
+      if (parsed.windUnit === "MPS") {
+        windText = `💨 Wind: ${windDirText} at ${parsed.windSpeed} m/s (${parsed.windSpeedKts} kts)`;
+      
+        if (parsed.windGust) {
+          windText += ` gusting at ${parsed.windGust} m/s (${parsed.windGustKts} kts)`;
+        }
+      
+      } else {
+        windText = `💨 Wind: ${windDirText} at ${parsed.windSpeed} kts`;
+      
+        if (parsed.windGust) {
+          windText += ` gusting at ${parsed.windGust} kts`;
+        }
       }
 
       if (parsed.windVariableFrom) {

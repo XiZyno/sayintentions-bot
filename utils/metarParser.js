@@ -1,18 +1,46 @@
 function parseMetar(metar) {
   const result = {};
 
-  // 🔥 REMOVE RMK (globálně)
+  // REMOVE RMK
   const cleanMetar = metar.split(" RMK")[0];
 
-  // ✈ FLIGHT CATEGORY (jednoduchá logika)
+  // ✈ FLIGHT CATEGORY
   result.flightCategory = "VFR";
 
-  // 🌬 WIND
-  const windMatch = cleanMetar.match(/(\d{3}|VRB)(\d{2})(G(\d{2}))?KT/);
+  // 🌬 WIND (KT + MPS support)
+  let windMatch = cleanMetar.match(/(\d{3}|VRB)(\d{2})(G(\d{2}))?KT/);
+  let isMPS = false;
+
+  if (!windMatch) {
+    windMatch = cleanMetar.match(/(\d{3}|VRB)(\d{2})(G(\d{2}))?MPS/);
+    isMPS = true;
+  }
+
   if (windMatch) {
     result.windDir = windMatch[1];
-    result.windSpeed = parseInt(windMatch[2]);
-    result.windGust = windMatch[4] ? parseInt(windMatch[4]) : null;
+
+    let speed = parseInt(windMatch[2]);
+    let gust = windMatch[4] ? parseInt(windMatch[4]) : null;
+
+    if (isMPS) {
+      result.windUnit = "MPS";
+
+      result.windSpeed = speed;
+      result.windGust = gust;
+
+      // conversion to kts
+      result.windSpeedKts = Math.round(speed * 1.94384);
+      result.windGustKts = gust ? Math.round(gust * 1.94384) : null;
+
+    } else {
+      result.windUnit = "KT";
+
+      result.windSpeed = speed;
+      result.windGust = gust;
+
+      result.windSpeedKts = speed;
+      result.windGustKts = gust;
+    }
   }
 
   // 🌬 VARIABLE WIND
@@ -40,10 +68,15 @@ function parseMetar(metar) {
         miles += parseInt(num) / parseInt(den);
       }
 
-      let unit = "statute miles";
-      if (miles <= 1) unit = "statute mile";
-
-      result.visibility = `${miles} ${unit}`;
+      if (miles === 10) {
+        result.visibility = "10 statute miles or more";
+      } else {
+        let unit = "statute miles";
+      
+        if (miles <= 1) unit = "statute mile";
+      
+        result.visibility = `${miles} ${unit}`;
+      }
 
     } else {
       const visMeters = cleanMetar.match(/\b(\d{4})\b/);
@@ -122,10 +155,10 @@ function getFlightCategoryColor(category) {
 }
 
 
-// 🌧 PRECIPITATION (FINAL CLEAN VERSION)
+// 🌧 PRECIPITATION
 function parsePrecipitation(metar) {
 
-  // 🔥 REMOVE RMK
+  // Ignore everything after a RMK in METAR
   const cleanMetar = metar.split(" RMK")[0];
 
   const phenomena = [
@@ -175,7 +208,7 @@ function parsePrecipitation(metar) {
 
         const emoji = emojiMap[p.text] || "🌦";
 
-        return `${emoji} ${text}`; // 🔥 ONLY MAIN PHENOMENON
+        return `${emoji} ${text}`; //ONLY MAIN PHENOMENON
       }
     }
   }
