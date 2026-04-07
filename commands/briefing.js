@@ -85,9 +85,11 @@ module.exports = {
           cloudText = "☁ Clouds: N/A";
         }
 
-        ceilingText = parsed.ceiling
-          ? `📉 Ceiling: ${parsed.ceiling} ft`
-          : "📉 Ceiling: None";
+        if (parsed.ceiling) {
+          ceilingText = `📉 Ceiling: ${parsed.ceiling} ft`;
+        } else {
+          ceilingText = "";
+        }
       }
 
       // 🌬 WIND
