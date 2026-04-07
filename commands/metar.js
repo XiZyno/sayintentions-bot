@@ -54,7 +54,7 @@ ${data.metar}
 💨 Wind: ${parsed.windDir === "VRB" ? "Variable" : parsed.windDir + "°"} / ${parsed.windSpeed} kt${parsed.windGust ? ` (gust ${parsed.windGust})` : ''}${parsed.windVariableFrom ? ` (variable ${parsed.windVariableFrom}°–${parsed.windVariableTo}°)` : ''}
 👁 Visibility: ${parsed.visibility}
 🌡 Temperature: ${parsed.temp}°C / Dewpoint: ${parsed.dew}°C
-📊 QNH: ${parsed.qnh} hPa
+📊 Pressure: ${parsed.pressure}
 
 ${cloudText}
 ${ceilingText}

@@ -43,11 +43,18 @@ function parseMetar(metar) {
     result.dew = tempMatch[2].replace("M", "-");
   }
 
-  // 📊 QNH
-  const qnhMatch = metar.match(/Q(\d{4})/);
-  if (qnhMatch) {
-    result.qnh = qnhMatch[1];
-  }
+    // 📊 PRESSURE (QNH / ALTIMETER)
+    const qnhMatch = metar.match(/Q(\d{4})/);
+    const altMatch = metar.match(/A(\d{4})/);
+
+    if (qnhMatch) {
+      result.pressure = `${qnhMatch[1]} hPa`;
+    } else if (altMatch) {
+      const inches = (parseInt(altMatch[1]) / 100).toFixed(2);
+      result.pressure = `${inches} inHg`;
+    } else {
+      result.pressure = "N/A";
+    }
 
   // ☁ CLOUDS + CEILING
   const cloudMatches = metar.match(/(FEW|SCT|BKN|OVC)(\d{3})/g);

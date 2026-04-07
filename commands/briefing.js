@@ -1,50 +1,105 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { getMetar } = require('../services/sayintentions');
+const { parseMetar } = require('../utils/metarParser');
+const { parseAtisRunways } = require('../utils/atisParser');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('briefing')
-    .setDescription('Získá kompletní briefing (ATIS, METAR, TAF)')
+    .setDescription('Full weather briefing (ATIS, METAR, TAF)')
     .addStringOption(option =>
       option.setName('icao')
-        .setDescription('ICAO kód letiště')
+        .setDescription('Airport ICAO code')
         .setRequired(true)
     ),
 
   async execute(interaction) {
-    await interaction.deferReply();
+    await interaction.reply('⏳ Fetching briefing...');
 
-    const icao = interaction.options.getString('icao').toUpperCase();
+    try {
+      const icao = interaction.options.getString('icao').toUpperCase();
 
-    const data = await getMetar(icao); // vrací celý objekt (atis, metar, taf)
+      const data = await getMetar(icao);
 
-    if (!data) {
-      return interaction.editReply('❌ Nepodařilo se získat data.');
-    }
+      if (!data) {
+        return interaction.editReply('❌ Failed to fetch data.');
+      }
 
-    const atis = data.atis || 'Není dostupné';
-    const metar = data.metar || 'Není dostupné';
-    const taf = data.taf || 'Není dostupné';
+      const parsed = parseMetar(data.metar);
+      const atisParsed = parseAtisRunways(data.atis);
 
-    await interaction.editReply({
-      content:
+      // 🛬 RUNWAY LOGIC
+      let runwayText = "🛬 Runway: N/A";
+
+      if (atisParsed.departure || atisParsed.arrival) {
+        runwayText = "";
+
+        if (atisParsed.departure) {
+          runwayText += `🛫 Departure Runway: ${atisParsed.departure}\n`;
+        }
+
+        if (atisParsed.arrival) {
+          runwayText += `🛬 Arrival Runway: ${atisParsed.arrival}\n`;
+        }
+      } else if (data.active_runway) {
+        runwayText = `🛬 Active Runway: ${data.active_runway}`;
+      }
+
+      // ☁ CLOUDS
+      let cloudText = "☁ Clouds: N/A";
+
+      if (parsed.clouds && parsed.clouds.length > 0) {
+        cloudText = "☁ Clouds:\n";
+        parsed.clouds.forEach(c => {
+          cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
+        });
+      }
+
+      // 📉 CEILING
+      const ceilingText = parsed.ceiling
+        ? `📉 Ceiling: ${parsed.ceiling} ft`
+        : "📉 Ceiling: None";
+
+      await interaction.editReply({
+        content:
 `✈️ BRIEFING ${icao}
 
 📡 ATIS:
 \`\`\`
-${atis}
+${data.atis || "N/A"}
 \`\`\`
 
-✈️ METAR:
 \`\`\`
-${metar}
+${data.metar || "N/A"}
 \`\`\`
 
-🌦 TAF:
 \`\`\`
-${taf}
-\`\`\``,
-      files: ['https://cdn.prod.website-files.com/677d9ab0efb4b38700f85ef5/6780ae5a9517f1701f1736c6_SayIntentions_Gold_Black_Long_Logo-p-2000.png']
-    });
+${data.taf || "N/A"}
+\`\`\`
+
+🟢 ${parsed.flightCategory}
+💨 Wind: ${parsed.windDir === "VRB" ? "Variable" : parsed.windDir + "°"} / ${parsed.windSpeed} kt${parsed.windGust ? ` (gust ${parsed.windGust})` : ''}${parsed.windVariableFrom ? ` (variable ${parsed.windVariableFrom}°–${parsed.windVariableTo}°)` : ''}
+👁 Visibility: ${parsed.visibility}
+🌡 Temperature: ${parsed.temp}°C / Dewpoint: ${parsed.dew}°C
+📊 Pressure: ${parsed.pressure}
+
+${runwayText}
+
+${cloudText}
+${ceilingText}
+`,
+        files: [{
+          attachment: 'https://i.imgur.com/yourimage.png', // fix this please
+          name: 'briefing.png'
+        }]
+      });
+
+    } catch (error) {
+      console.error('❌ Briefing error:', error);
+
+      try {
+        await interaction.editReply('❌ Something went wrong.');
+      } catch {}
+    }
   }
 };
