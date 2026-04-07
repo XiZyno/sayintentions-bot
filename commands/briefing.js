@@ -2,6 +2,8 @@ const { SlashCommandBuilder } = require('discord.js');
 const { getMetar } = require('../services/sayintentions');
 const { parseMetar } = require('../utils/metarParser');
 const { parseAtisRunways } = require('../utils/atisParser');
+const categoryColor = getFlightCategoryColor(parsed.flightCategory);
+const { getFlightCategoryColor } = require('../utils/metarParser');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -35,7 +37,7 @@ module.exports = {
         if (Array.isArray(rw)) {
           return {
             text: rw.join(', '),
-            plural: true
+            plural: rw.length > 1
           };
         }
         return {
@@ -66,20 +68,26 @@ module.exports = {
         runwayText = `🛬 Active Runway: ${data.active_runway}`;
       }
 
-      // ☁ CLOUDS
-      let cloudText = "☁ Clouds: N/A";
+      let cloudText = "";
+      let ceilingText = "";
 
-      if (parsed.clouds && parsed.clouds.length > 0) {
-        cloudText = "☁ Clouds:\n";
-        parsed.clouds.forEach(c => {
-          cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
-        });
+      // if CAVOK → don't show anything
+      if (parsed.visibility !== "CAVOK") {
+      
+        if (parsed.clouds && parsed.clouds.length > 0) {
+          cloudText = "☁ Clouds:\n";
+        
+          parsed.clouds.forEach(c => {
+            cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
+          });
+        } else {
+          cloudText = "☁ Clouds: N/A";
+        }
+      
+        ceilingText = parsed.ceiling
+          ? `📉 Ceiling: ${parsed.ceiling} ft`
+          : "📉 Ceiling: None";
       }
-
-      // 📉 CEILING
-      const ceilingText = parsed.ceiling
-        ? `📉 Ceiling: ${parsed.ceiling} ft`
-        : "📉 Ceiling: None";
 
       await interaction.editReply({
         content:
@@ -98,7 +106,7 @@ ${data.metar || "N/A"}
 ${data.taf || "N/A"}
 \`\`\`
 
-🟢 ${parsed.flightCategory}
+${categoryColor} **${parsed.flightCategory}**
 💨 Wind: ${parsed.windDir === "VRB" ? "Variable" : parsed.windDir + "°"} / ${parsed.windSpeed} kt${parsed.windGust ? ` (gust ${parsed.windGust})` : ''}${parsed.windVariableFrom ? ` (variable ${parsed.windVariableFrom}°–${parsed.windVariableTo}°)` : ''}
 👁 Visibility: ${parsed.visibility}
 🌡 Temperature: ${parsed.temp}°C / Dewpoint: ${parsed.dew}°C
@@ -106,8 +114,8 @@ ${data.taf || "N/A"}
 
 ${runwayText}
 
-${cloudText}
-${ceilingText}
+${cloudText ? "\n" + cloudText : ""}
+${ceilingText ? ceilingText : ""}
 `,
         files: [{
           attachment: 'https://i.imgur.com/yourimage.png', // fix this please

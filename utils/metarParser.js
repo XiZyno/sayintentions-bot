@@ -106,4 +106,19 @@ function parseMetar(metar) {
   return result;
 }
 
+function getFlightCategoryColor(category) {
+  switch (category) {
+    case "VFR":
+      return "🟢";
+    case "MVFR":
+      return "🔵";
+    case "IFR":
+      return "🔴";
+    case "LIFR":
+      return "🟣";
+    default:
+      return "⚪";
+  }
+}
+
 module.exports = { parseMetar };
