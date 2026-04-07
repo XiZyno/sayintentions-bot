@@ -17,22 +17,44 @@ function parseMetar(metar) {
     }
   }
 
-  // 👁 VISIBILITY (ICAO)
+  // 👁 VISIBILITY
   if (metar.includes("CAVOK")) {
     result.visibility = "CAVOK";
   } else {
-    const visMatchMeters = metar.match(/\b(\d{4})\b/);
 
-    if (visMatchMeters) {
-      const meters = visMatchMeters[1];
+    // statute miles
+    const visSM = metar.match(/(\d+)? ?(\d\/\d)?SM/);
 
-      if (meters === "9999") {
-        result.visibility = "10 km and more";
-      } else {
-        result.visibility = `${meters} m`;
+    if (visSM) {
+      let miles = 0;
+
+      if (visSM[1]) {
+        miles += parseInt(visSM[1]);
       }
+
+      if (visSM[2]) {
+        const [num, den] = visSM[2].split('/');
+        miles += parseInt(num) / parseInt(den);
+      }
+
+      result.visibility = `${miles} statute miles`;
+
     } else {
-      result.visibility = "N/A";
+
+      // meters
+      const visMatchMeters = metar.match(/\b(\d{4})\b/);
+
+      if (visMatchMeters) {
+        const meters = visMatchMeters[1];
+
+        if (meters === "9999") {
+          result.visibility = "10 km and more";
+        } else {
+          result.visibility = `${meters} m`;
+        }
+      } else {
+        result.visibility = "N/A";
+      }
     }
   }
 
@@ -121,4 +143,116 @@ function getFlightCategoryColor(category) {
   }
 }
 
-module.exports = { parseMetar, getFlightCategoryColor };
+function parsePrecipitation(metar) {
+  const emojiMap = {
+    rain: "🌧",
+     drizzle: "🌦",
+     "rain showers": "🌦",
+     snow: "❄️",
+     "snow showers": "🌨",
+     thunderstorm: "⛈",
+     "thunderstorm with rain": "⛈",
+     "thunderstorm with hail": "⛈",
+     hail: "🌨",
+     "small hail": "🌨",
+     fog: "🌫",
+     mist: "🌫",
+     "freezing rain": "🌧",
+     "freezing drizzle": "🌧",
+     "snow grains": "❄️"
+  };
+  const phenomena = [
+    { code: "TSRA", text: "thunderstorm with rain" },
+    { code: "SHRA", text: "rain showers" },
+    { code: "SHSN", text: "snow showers" },
+    { code: "TSGR", text: "thunderstorm with hail" },
+    { code: "FZRA", text: "freezing rain" },
+    { code: "FZDZ", text: "freezing drizzle" },
+    { code: "TS", text: "thunderstorm" },
+    { code: "RA", text: "rain" },
+    { code: "DZ", text: "drizzle" },
+    { code: "SN", text: "snow" },
+    { code: "SG", text: "snow grains" },
+    { code: "GR", text: "hail" },
+    { code: "GS", text: "small hail" },
+    { code: "FG", text: "fog" },
+    { code: "BR", text: "mist" },
+    { code: "DU", text: "dust" },
+    { code: "SA", text: "sand" },
+    { code: "HZ", text: "haze" },
+    { code: "FU", text: "smoke" },
+    { code: "VA", text: "volcanic ash" }
+  ];
+
+  const prefixes = {
+    "-": "Light",
+    "+": "Heavy",
+    "VC": "in vicinity",
+    "MI": "shallow",
+    "BC": "patches",
+    "PR": "partial",
+    "DR": "drifting",
+    "BL": "blowing"
+  };
+
+  const matches = [];
+
+  // split METAR into parts (safe parsing)
+  const parts = metar.split(" ");
+
+  for (const part of parts) {
+    for (const p of phenomena) {
+
+      if (part.includes(p.code)) {
+        let text = p.text;
+
+        // 🔍 prefix detection
+        let intensity = "";
+        let modifierBefore = "";
+        let modifierAfter = "";
+
+        // intensity
+        if (part.startsWith("-")) intensity = prefixes["-"];
+        if (part.startsWith("+")) intensity = prefixes["+"];
+
+        // vicinity
+        if (part.includes("VC")) {
+          modifierAfter = prefixes["VC"];
+        }
+
+        // other modifiers
+        if (part.startsWith("MI")) modifierBefore = prefixes["MI"];
+        if (part.startsWith("BC")) modifierBefore = prefixes["BC"];
+        if (part.startsWith("PR")) modifierBefore = prefixes["PR"];
+        if (part.startsWith("DR")) modifierBefore = prefixes["DR"];
+        if (part.startsWith("BL")) modifierBefore = prefixes["BL"];
+
+        // 🧠 build sentence
+        let final = "";
+
+        if (intensity) final += intensity + " ";
+        if (modifierBefore) final += modifierBefore + " ";
+
+        final += text;
+
+        if (modifierAfter) final += " " + modifierAfter;
+
+        // 🎨 přidej emoji
+        const emoji = emojiMap[text] || "🌦";
+
+        final = `${emoji} ${final}`;
+
+        // capitalize
+        final = final.charAt(0).toUpperCase() + final.slice(1);
+
+        matches.push(final);
+      }
+    }
+  }
+
+  if (matches.length === 0) return null;
+
+  return [...new Set(matches)].join(", ");
+}
+
+module.exports = { parseMetar, getFlightCategoryColor, parsePrecipitation };

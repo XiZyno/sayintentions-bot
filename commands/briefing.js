@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { getMetar } = require('../services/sayintentions');
-const { parseMetar, getFlightCategoryColor } = require('../utils/metarParser');
+const { parseMetar, getFlightCategoryColor, parsePrecipitation } = require('../utils/metarParser');
 const { parseAtisRunways } = require('../utils/atisParser');
 
 module.exports = {
@@ -26,11 +26,12 @@ module.exports = {
 
       const parsed = parseMetar(data.metar);
       const categoryColor = getFlightCategoryColor(parsed.flightCategory);
+      const precipitation = parsePrecipitation(data.metar);
       const atisParsed = parseAtisRunways(data.atis);
 
+      // ✈ RUNWAY LOGIC
       let runwayText = "🛬 Runway: N/A";
 
-      // helper
       const formatRunway = (rw) => {
         if (Array.isArray(rw)) {
           return {
@@ -68,10 +69,10 @@ module.exports = {
         runwayText = `🛬 Active Runway: ${data.active_runway}`;
       }
 
+      // ☁ CLOUDS + CEILING (hidden if CAVOK)
       let cloudText = "";
       let ceilingText = "";
 
-      // hide clouds/ceiling if CAVOK
       if (parsed.visibility !== "CAVOK") {
 
         if (parsed.clouds && parsed.clouds.length > 0) {
@@ -89,7 +90,7 @@ module.exports = {
           : "📉 Ceiling: None";
       }
 
-      // 🌬 WIND TEXT (new ATIS style)
+      // 🌬 WIND (ATIS style)
       const windDirText = parsed.windDir === "VRB"
         ? "Variable"
         : `${parsed.windDir}°`;
@@ -102,6 +103,12 @@ module.exports = {
 
       if (parsed.windVariableFrom) {
         windText += ` (variable ${parsed.windVariableFrom}°–${parsed.windVariableTo}°)`;
+      }
+
+      // 🌧 PRECIPITATION
+      let precipText = "";
+      if (precipitation) {
+        precipText = `🌧 Precipitation: ${precipitation}`;
       }
 
       await interaction.editReply({
@@ -123,6 +130,7 @@ ${data.taf || "N/A"}
 
 ${categoryColor} **${parsed.flightCategory}**
 ${windText}
+${precipText}
 👁 Visibility: ${parsed.visibility}
 🌡 Temperature: ${parsed.temp}°C / Dewpoint: ${parsed.dew}°C
 📊 Pressure: ${parsed.pressure}
@@ -133,7 +141,7 @@ ${cloudText ? "\n" + cloudText : ""}
 ${ceilingText ? ceilingText : ""}
 `,
         files: [{
-          attachment: 'https://i.imgur.com/yourimage.png', // dej sem real link
+          attachment: 'https://i.imgur.com/yourimage.png', // sem dej reálný obrázek
           name: 'briefing.png'
         }]
       });
