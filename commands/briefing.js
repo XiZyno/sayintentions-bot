@@ -28,19 +28,40 @@ module.exports = {
       const parsed = parseMetar(data.metar);
       const atisParsed = parseAtisRunways(data.atis);
 
-      // 🛬 RUNWAY LOGIC
       let runwayText = "🛬 Runway: N/A";
 
-      if (atisParsed.departure || atisParsed.arrival) {
-        runwayText = "";
-
-        if (atisParsed.departure) {
-          runwayText += `🛫 Departure Runway: ${atisParsed.departure}\n`;
+      // helper
+      const formatRunway = (rw) => {
+        if (Array.isArray(rw)) {
+          return {
+            text: rw.join(', '),
+            plural: true
+          };
         }
+        return {
+          text: rw,
+          plural: false
+        };
+      };
 
-        if (atisParsed.arrival) {
-          runwayText += `🛬 Arrival Runway: ${atisParsed.arrival}\n`;
+      if (atisParsed.departure && atisParsed.arrival) {
+        const dep = formatRunway(atisParsed.departure);
+        const arr = formatRunway(atisParsed.arrival);
+      
+        if (dep.text === arr.text) {
+          runwayText = `🛬 Active Runways: ${dep.text}`;
+        } else {
+          runwayText =
+            `🛫 Departure Runway${dep.plural ? 's' : ''}: ${dep.text}\n` +
+            `🛬 Arrival Runway${arr.plural ? 's' : ''}: ${arr.text}`;
         }
+      
+      } else if (atisParsed.departure) {
+        runwayText = `🛫 Departure Runway: ${formatRunway(atisParsed.departure)}`;
+      
+      } else if (atisParsed.arrival) {
+        runwayText = `🛬 Arrival Runway: ${formatRunway(atisParsed.arrival)}`;
+      
       } else if (data.active_runway) {
         runwayText = `🛬 Active Runway: ${data.active_runway}`;
       }
