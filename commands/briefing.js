@@ -96,7 +96,7 @@ module.exports = {
       parsed.clouds.forEach(c => {
 
         if (c.type === "CLR") {
-          cloudText = "☁ Clouds: Clear skies";
+          cloudText = "☁ Clouds: Sky clear";
           return;
         }
       
@@ -115,7 +115,19 @@ module.exports = {
           return;
         }
       
-        cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
+        let line = `- ${c.type} (${c.oktas}) @ ${c.height} ft`;
+
+        const cloudTypeMap = {
+          CB: "cumulonimbus",
+          TCU: "towering cumulus"
+        };
+
+        if (c.cloudType) {
+          const fullName = cloudTypeMap[c.cloudType] || c.cloudType;
+          line += ` with ${fullName}`;
+        }
+
+        cloudText += line + "\n";
       });
 
       // 🌬 WIND
@@ -149,6 +161,35 @@ module.exports = {
         ? `🌧 Precipitation: ${precipitation}`
         : `🌧 Precipitation: None`;
 
+      let rvrText = "";
+
+      // RUNWAY VISUAL RANGE
+      if (parsed.rvr && parsed.rvr.length > 0) {
+        rvrText = "👁 RVR:\n";
+      
+        parsed.rvr.forEach(r => {
+          let line = `- RWY ${r.runway} → ${r.min}`;
+        
+          if (r.max) {
+            line += `–${r.max}`;
+          }
+        
+          line += " m";
+        
+          if (r.trend) {
+            line += ` (${r.trend})`;
+          }
+        
+          rvrText += line + "\n";
+        });
+      }
+
+      let vvText = "";
+
+      if (parsed.verticalVisibility) {
+        vvText = `🌫 Vertical visibility: ${parsed.verticalVisibility} ft`;
+      }
+
       await interaction.editReply({
         content:
 `✈️ BRIEFING ${icao}
@@ -172,8 +213,11 @@ ${categoryColor} **${parsed.flightCategory}**
 ${windText}
 ${precipText}
 👁 Visibility: ${parsed.visibility}
+🌫 Vertical visibility: ${parsed.verticalVisibility}
+${vvText ? vvText : ""}
 🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)
 📊 Pressure: ${parsed.pressure}
+${rvrText ? "\n" + rvrText : ""}
 
 ${runwayText}
 
