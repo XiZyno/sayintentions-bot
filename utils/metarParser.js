@@ -1,5 +1,7 @@
 function parseMetar(metar) {
-  const result = {};
+  const result = {
+    verticalVisibility: null
+  };
 
   // REMOVE RMK
   const cleanMetar = metar.split(" RMK")[0];
@@ -82,8 +84,8 @@ function parseMetar(metar) {
       const visMatch = cleanMetar.match(/\b(\d{4})\b(?:\s+(\d{4})([A-Z]{1,2}))?/);
 
       if (visMatch) {
-        const mainVis = visMatch[1];
-        const dirVis = visMatch[2];
+        const mainVis = parseInt(visMatch[1], 10);
+        const dirVis = visMatch[2] ? parseInt(visMatch[2], 10) : null;
         const direction = visMatch[3];
             
         if (mainVis === "9999") {

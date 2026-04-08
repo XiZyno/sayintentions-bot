@@ -186,7 +186,7 @@ module.exports = {
 
       let vvText = "";
 
-      if (parsed.verticalVisibility) {
+      if (parsed.verticalVisibility !== null && parsed.verticalVisibility !== undefined) {
         vvText = `🌫 Vertical visibility: ${parsed.verticalVisibility} ft`;
       }
 
@@ -211,17 +211,17 @@ ${data.taf || "N/A"}
 
 ${categoryColor} **${parsed.flightCategory}**
 ${windText}
-${precipText}
 👁 Visibility: ${parsed.visibility}
+${cloudText ? "\n" + cloudText : ""}
 🌫 Vertical visibility: ${parsed.verticalVisibility}
 ${vvText ? vvText : ""}
+${precipText}
 🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)
 📊 Pressure: ${parsed.pressure}
 ${rvrText ? "\n" + rvrText : ""}
 
 ${runwayText}
 
-${cloudText ? "\n" + cloudText : ""}
 ${ceilingText ? ceilingText : ""}
 `,
         files: [{
