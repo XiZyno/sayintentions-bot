@@ -117,6 +117,27 @@ function parseMetar(metar) {
 
   // ☁ CLOUDS
   result.clouds = [];
+
+  if (cleanMetar.includes("CLR")) {
+    result.clouds.push({ type: "CLR" });
+    return result;
+  }
+
+  if (cleanMetar.includes("SKC")) {
+    result.clouds.push({ type: "SKC" });
+    return result;
+  }
+
+  if (cleanMetar.includes("NCD")) {
+    result.clouds.push({ type: "NCD" });
+    return result;
+  }
+
+  if (cleanMetar.includes("NSC")) {
+    result.clouds.push({ type: "NSC" });
+    return result;
+  }
+
   const cloudMatches = cleanMetar.match(/(FEW|SCT|BKN|OVC)(\d{3})/g);
 
   if (cloudMatches) {

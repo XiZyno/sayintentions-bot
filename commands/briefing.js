@@ -3,6 +3,7 @@ const { getMetar } = require('../services/sayintentions');
 const { parseMetar, getFlightCategoryColor, parsePrecipitation } = require('../utils/metarParser');
 const { parseAtisRunways } = require('../utils/atisParser');
 
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('briefing')
@@ -30,7 +31,7 @@ module.exports = {
       const atisParsed = parseAtisRunways(data.atis);
 
       // ✈ RUNWAY LOGIC
-      let runwayText = "🛬 Runway: Runway in use not reported, ask an ATC";
+      let runwayText = "🛬 Active runway: Runway in use not reported, ask an ATC";
 
       const formatRunway = (rw) => {
         if (Array.isArray(rw)) {
@@ -91,6 +92,31 @@ module.exports = {
           ceilingText = "";
         }
       }
+
+      parsed.clouds.forEach(c => {
+
+        if (c.type === "CLR") {
+          cloudText = "☁ Clouds: Clear skies";
+          return;
+        }
+      
+        if (c.type === "SKC") {
+          cloudText = "☁ Clouds: Sky clear";
+          return;
+        }
+      
+        if (c.type === "NCD") {
+          cloudText = "☁ Clouds: No clouds detected";
+          return;
+        }
+      
+        if (c.type === "NSC") {
+          cloudText = "☁ Clouds: No significant clouds";
+          return;
+        }
+      
+        cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
+      });
 
       // 🌬 WIND
       const windDirText = parsed.windDir === "VRB"
