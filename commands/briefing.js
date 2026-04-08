@@ -83,7 +83,7 @@ module.exports = {
             cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
           });
         } else {
-          cloudText = "☁ Clouds: N/A";
+          cloudText = "";
         }
 
         if (parsed.ceiling) {

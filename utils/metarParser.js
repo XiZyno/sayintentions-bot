@@ -152,7 +152,10 @@ function parseMetar(metar) {
   // 🌡 TEMPERATURE
   const tempMatch = cleanMetar.match(/(M?\d{2})\/(M?\d{2})/);
   if (tempMatch) {
-    const parseTemp = (t) => t.startsWith("M") ? -parseInt(t.slice(1)) : parseInt(t);
+    const parseTemp = (t) => {
+      if (t.startsWith("M")) return -parseInt(t.slice(1), 10);
+      return parseInt(t, 10);
+    };
 
     result.temp = parseTemp(tempMatch[1]);
     result.dew = parseTemp(tempMatch[2]);
