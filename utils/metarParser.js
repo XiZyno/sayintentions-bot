@@ -1,4 +1,12 @@
 function parseMetar(metar) {
+  if (!metar || typeof metar !== "string") {
+    return {
+      visibility: "N/A",
+      clouds: [],
+      ceiling: null
+    };
+  }
+
   const result = {
     verticalVisibility: null
   };
