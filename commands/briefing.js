@@ -15,7 +15,6 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    await interaction.deferReply();
     await interaction.editReply('⏳ Fetching briefing...');
 
     try {
@@ -261,16 +260,17 @@ ${data.taf || "N/A"}
 ${categoryColor} **${parsed.flightCategory}**
 ${windText}
 👁 Visibility: ${parsed.visibility}
-${cloudText ? "\n" + cloudText : ""}
+cloudText += line + "\n";
+cloudText = cloudText.trimEnd();
+${ceilingText ? ceilingText : ""}
 ${vvText ? vvText : ""}
 ${precipText}
 🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)
 📊 Pressure: ${parsed.pressure}
-${rvrText ? "\n" + rvrText : ""}
+${rvrText || ""}
 
 ${runwayText}
 
-${ceilingText ? ceilingText : ""}
 `,
         files: [{
           attachment: 'https://i.imgur.com/yourimage.png', // sem dej reálný obrázek

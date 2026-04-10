@@ -38,26 +38,26 @@ client.once('clientReady', () => {
 
 client.on('interactionCreate', async interaction => {
 
+  console.log("INTERACTION RECEIVED");
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
   try {
+
+    await interaction.deferReply();
+
     await command.execute(interaction);
 
   } catch (error) {
     console.error(error);
 
-    if (interaction.deferred || interaction.replied) {
+    try {
       await interaction.editReply('❌ Error executing command.');
-    } else {
-      await interaction.reply({
-        content: '❌ Error executing command.',
-        ephemeral: true
-      });
-    }
-  }
+    } catch {}
+}
 });
 
 // login
