@@ -68,19 +68,24 @@ module.exports = {
 
       let vatsimText = "🗼 VATSIM: No controllers online at this airport";
 
-      if (vatsimData?.controllers) {      
-        const controllers = vatsimData.controllers.filter(c =>
-          c.callsign.includes(icao)
-        );
-      
-        if (controllers.length > 0) {
-          vatsimText = "🗼 VATSIM:\n";
-        
-          controllers.forEach(c => {
-            vatsimText += `- ${c.callsign} (${c.frequency})\n`;
+      if (Array.isArray(vatsimData)) {
+
+        const priority = {
+          DEL: 1,
+          GND: 2,
+          TWR: 3
+        };
+
+        const controllers = vatsimData
+          .filter(c => c.callsign.startsWith(icao))
+          .map(c => c.callsign)
+          .sort((a, b) => {
+            const getType = cs => cs.split("_")[1] || "";
+            return (priority[getType(a)] || 99) - (priority[getType(b)] || 99);
           });
-        
-          vatsimText = vatsimText.trimEnd();
+
+        if (controllers.length > 0) {
+          vatsimText = "🗼 VATSIM:\n" + controllers.join("\n");
         }
       }
 

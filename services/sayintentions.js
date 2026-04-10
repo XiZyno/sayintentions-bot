@@ -127,9 +127,9 @@ async function getVatsimControllers() {
   try {
     console.log("VATSIM API FETCH");
 
-    const res = await axios.get('https://apipri.sayintentions.ai/sapi/getVATSIM', {
-      params: {
-        api_key: apiKey
+    const res = await axios.get('https://api.vatsim.net/v2/atc/online', {
+      headers: {
+        Accept: 'application/json'
       }
     });
 
