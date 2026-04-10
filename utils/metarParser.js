@@ -1,7 +1,5 @@
 function parseMetar(metar) {
 
-  result.nosig = metar.includes("NOSIG");
-
   if (!metar || typeof metar !== "string") {
     return {
       flightCategory: "UNKNOWN",
@@ -22,11 +20,12 @@ function parseMetar(metar) {
   }
 
   const result = {
-    verticalVisibility: null
+    verticalVisibility: null,
+    nosig: metar.includes("NOSIG")
   };
 
   // REMOVE RMK
-  const cleanMetar = metar.split(" RMK")[0];
+  const cleanMetar = metar.split(/\s(RMK|BECMG|TEMPO|NOSIG)\b/)[0];
 
   // ✈ FLIGHT CATEGORY
   result.flightCategory = "VFR";
