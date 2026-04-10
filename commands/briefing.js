@@ -77,6 +77,7 @@ module.exports = {
         }
       }
 
+
       // ✈ RUNWAY LOGIC
       let runwayText = "🛬 Active runway: Runway in use not reported, ask an ATC";
 
@@ -278,6 +279,12 @@ module.exports = {
       lines.push(`📊 Pressure: ${parsed.pressure}`);
 
       if (rvrText) lines.push(rvrText);
+
+      // NOSIG appearance
+      if (parsed.nosig) {
+        lines.push("");
+        lines.push("📈 NOSIG: No significant changes expected in next 2 hours");
+      }
 
       // RUNWAY
       lines.push("");

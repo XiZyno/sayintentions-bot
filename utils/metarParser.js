@@ -1,5 +1,7 @@
 function parseMetar(metar) {
 
+  result.nosig = metar.includes("NOSIG");
+
   if (!metar || typeof metar !== "string") {
     return {
       flightCategory: "UNKNOWN",
@@ -261,8 +263,8 @@ function getFlightCategoryColor(category) {
 // 🌧 PRECIPITATION
 function parsePrecipitation(metar) {
 
-  // Ignore everything after a RMK in METAR
-  const cleanMetar = metar.split(" RMK")[0];
+  // Ignore everything after a RMK/BECMG/TEMPO in METAR
+  const cleanMetar = metar.split(/\s(RMK|BECMG|TEMPO|NOSIG)\b/)[0];
 
   const phenomena = [
     { code: "TSRA", text: "thunderstorm with rain" },
