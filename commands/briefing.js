@@ -70,7 +70,7 @@ module.exports = {
 
       if (vatsimData?.controllers) {      
         const controllers = vatsimData.controllers.filter(c =>
-          c.callsign.startsWith(icao)
+          c.callsign.includes(icao)
         );
       
         if (controllers.length > 0) {
