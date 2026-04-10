@@ -249,6 +249,9 @@ module.exports = {
       lines.push("");
       lines.push(runwayText);
 
+      // VATSIM ATC
+      lines.push("");
+
       // FINAL OUTPUT
       await interaction.editReply({
         content: lines.join("\n")
@@ -263,9 +266,9 @@ module.exports = {
     }
     const vatsimData = await getVatsimControllers();
 
-    let vatsimText = "🗼 VATSIM: No controllers online";
-      
-    if (vatsimData && vatsimData.controllers) {
+    let vatsimText = "🗼 VATSIM: No controllers online at this airport";
+
+    if (vatsimData?.controllers) {
     
       const controllers = vatsimData.controllers.filter(c =>
         c.callsign.startsWith(icao)
