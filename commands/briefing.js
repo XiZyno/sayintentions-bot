@@ -35,8 +35,15 @@ module.exports = {
       if (!data) {
         loading = false;
         clearInterval(spinner);
-        return interaction.editReply('❌ Failed to fetch data.');
+        return interaction.editReply('❌ Failed to fetch data from API.');
       }
+
+      if (!data.error === "NO_AIRPORT") {
+        loading = false;
+        clearInterval(spinner);
+        return interaction.editReply('❌ SayIntentions does not cover (${icao}) ATIS.');
+      }
+
 
       let parsed;
       if (data.metar &&  typeof data.metar === "string") {

@@ -80,7 +80,13 @@ async function getMetar(icao) {
   const data = await getWeather(icao);
   const airport = data?.airports?.[0];
 
-  if (!airport || !airport.metar) return null;
+  if (!airport) {
+    return { error: "NO_AIRPORT" };
+  }
+  
+  if (!airport.metar) {
+    return { error: "NO_METAR", data: airport };
+  }
 
   const metarTime = extractMetarTime(airport.metar);
 
