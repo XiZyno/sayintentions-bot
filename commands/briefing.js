@@ -170,7 +170,7 @@ module.exports = {
       // 🌧 PRECIPITATION
       let precipText = precipitation
         ? `🌧 Precipitation: ${precipitation}`
-        : `🌧 Precipitation: None`;
+        : null;
 
       let rvrText = "";
 
@@ -201,43 +201,57 @@ module.exports = {
         vvText = `🌫 Vertical visibility: ${parsed.verticalVisibility} ft`;
       }
 
+      const lines = [];
+
+      // HEADER
+      lines.push(`✈️ BRIEFING ${icao}`);
+      lines.push("");
+
+      // ATIS
+      lines.push("📡 ATIS:");
+      lines.push("```");
+      lines.push(data.atis || "N/A");
+      lines.push("```");
+      lines.push("");
+
+      // METAR
+      lines.push("📊 METAR:");
+      lines.push("```");
+      lines.push(data.metar || "N/A");
+      lines.push("```");
+      lines.push("");
+
+      // TAF
+      lines.push("📈 TAF:");
+      lines.push("```");
+      lines.push(data.taf || "N/A");
+      lines.push("```");
+      lines.push("");
+
+      // WEATHER SUMMARY
+      lines.push(`${categoryColor} **${parsed.flightCategory}**`);
+      lines.push(windText);
+      lines.push(`👁 Visibility: ${parsed.visibility}`);
+
+      // OPTIONAL BLOCKS (jen když existují)
+      if (cloudText) lines.push(cloudText);
+      if (ceilingText) lines.push(ceilingText);
+      if (vvText) lines.push(vvText);
+      if (precipText) lines.push(precipText);
+
+      // ALWAYS
+      lines.push(`🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)`);
+      lines.push(`📊 Pressure: ${parsed.pressure}`);
+
+      if (rvrText) lines.push(rvrText);
+
+      // RUNWAY
+      lines.push("");
+      lines.push(runwayText);
+
+      // FINAL OUTPUT
       await interaction.editReply({
-        content:
-`✈️ BRIEFING ${icao}
-
-📡 ATIS:
-\`\`\`
-${data.atis || "N/A"}
-\`\`\`
-
-📊 METAR:
-\`\`\`
-${data.metar || "N/A"}
-\`\`\`
-
-📈 TAF:
-\`\`\`
-${data.taf || "N/A"}
-\`\`\`
-
-${categoryColor} **${parsed.flightCategory}**
-${windText}
-👁 Visibility: ${parsed.visibility}
-${cloudText || ""}
-${ceilingText || ""}
-${vvText || ""}
-${precipText || ""}
-🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)
-📊 Pressure: ${parsed.pressure}
-${rvrText || ""}
-
-${runwayText}
-
-`,
-        files: [{
-          attachment: 'https://i.imgur.com/yourimage.png', // sem dej reálný obrázek
-          name: 'briefing.png'
-        }]
+        content: lines.join("\n")
       });
 
     } catch (error) {
