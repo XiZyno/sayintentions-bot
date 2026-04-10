@@ -117,8 +117,24 @@ async function getAtis(icao) {
   return data;
 }
 
+async function getVatsimControllers() {
+  try {
+    const res = await axios.get('https://apipri.sayintentions.ai/sapi/getVATSIM', {
+      params: {
+        api_key: apiKey
+      }
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error("VATSIM API error:", err.message);
+    return null;
+  }
+}
+
 module.exports = {
   getMetar,
   getTaf,
-  getAtis
+  getAtis,
+  getVatsimControllers
 };

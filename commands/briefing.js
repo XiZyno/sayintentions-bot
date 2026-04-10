@@ -261,5 +261,25 @@ module.exports = {
         await interaction.editReply('❌ Something went wrong.');
       } catch {}
     }
+    const vatsimData = await getVatsimControllers();
+
+    let vatsimText = "🗼 VATSIM: No controllers online";
+      
+    if (vatsimData && vatsimData.controllers) {
+    
+      const controllers = vatsimData.controllers.filter(c =>
+        c.callsign.startsWith(icao)
+      );
+    
+      if (controllers.length > 0) {
+        vatsimText = "🗼 VATSIM:\n";
+      
+        controllers.forEach(c => {
+          vatsimText += `- ${c.callsign} (${c.frequency})\n`;
+        });
+      
+        vatsimText = vatsimText.trimEnd();
+      }
+    }
   }
 };
