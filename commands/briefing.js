@@ -95,28 +95,28 @@ module.exports = {
             
               // special cases
               if (c.type === "CLR") {
-                cloudText = "☁ Clouds: Clear skies";
+                cloudText = "☁️ Clouds: Clear skies";
                 return;
               }
             
               if (c.type === "SKC") {
-                cloudText = "☁ Clouds: Sky clear";
+                cloudText = "☁️ Clouds: Sky clear";
                 return;
               }
             
               if (c.type === "NCD") {
-                cloudText = "☁ Clouds: No clouds detected";
+                cloudText = "☁️ Clouds: No clouds detected";
                 return;
               }
             
               if (c.type === "NSC") {
-                cloudText = "☁ Clouds: No significant clouds";
+                cloudText = "☁️ Clouds: No significant clouds";
                 return;
               }
             
               // normal clouds
               if (!cloudText) {
-                cloudText = "☁ Clouds:\n";
+                cloudText = "☁️ Clouds:\n";
               }
             
               let line = `- ${c.type} (${c.oktas}) @ ${c.height} ft`;
@@ -140,44 +140,6 @@ module.exports = {
             ceilingText = `📉 Ceiling: ${parsed.ceiling} ft`;
           }
         }
-      
-      parsed.clouds.forEach(c => {
-
-        if (c.type === "CLR") {
-          cloudText = "☁ Clouds: Sky clear";
-          return;
-        }
-      
-        if (c.type === "SKC") {
-          cloudText = "☁ Clouds: Sky clear";
-          return;
-        }
-      
-        if (c.type === "NCD") {
-          cloudText = "☁ Clouds: No clouds detected";
-          return;
-        }
-      
-        if (c.type === "NSC") {
-          cloudText = "☁ Clouds: No significant clouds";
-          return;
-        }
-      
-        let line = `- ${c.type} (${c.oktas}) @ ${c.height} ft`;
-
-        const cloudTypeMap = {
-          CB: "cumulonimbus",
-          TCU: "towering cumulus"
-        };
-
-        if (c.cloudType) {
-          const fullName = cloudTypeMap[c.cloudType] || c.cloudType;
-          line += ` with ${fullName}`;
-        }
-
-        cloudText += line + "\n";
-        cloudText = cloudText.trimEnd();
-      });
 
       // 🌬 WIND
       const windDirText = parsed.windDir === "VRB"
@@ -262,9 +224,9 @@ ${categoryColor} **${parsed.flightCategory}**
 ${windText}
 👁 Visibility: ${parsed.visibility}
 ${cloudText || ""}
-${ceilingText ? ceilingText : ""}
-${vvText ? vvText : ""}
-${precipText}
+${ceilingText || ""}
+${vvText || ""}
+${precipText || ""}
 🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)
 📊 Pressure: ${parsed.pressure}
 ${rvrText || ""}
