@@ -222,11 +222,11 @@ function parseMetar(metar) {
   if (cloudMatches) {
     for (const c of cloudMatches) {
       const match = c.match(/(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?/);
-        
+
       const type = match[1];
       const height = parseInt(match[2]) * 100;
       const cloudType = match[3] || null;
-        
+
       const oktas = {
         FEW: "1–2/8",
         SCT: "3–4/8",
@@ -317,20 +317,21 @@ function parsePrecipitation(metar) {
 
   for (const part of parts) {
     for (const p of phenomena) {
-
-      if (part.includes(p.code)) {
-
+    
+      const match = part.match(new RegExp(`^([-+]?)(VC)?(${p.code})$`));
+    
+      if (match) {
         let text = p.text;
-
-        if (part.startsWith("-")) text = `Light ${text}`;
-        if (part.startsWith("+")) text = `Heavy ${text}`;
-        if (part.includes("VC")) text += " in vicinity";
-
+      
+        if (match[1] === "-") text = `Light ${text}`;
+        if (match[1] === "+") text = `Heavy ${text}`;
+        if (match[2]) text += " in vicinity";
+      
         text = text.charAt(0).toUpperCase() + text.slice(1);
-
+      
         const emoji = emojiMap[p.text] || "🌦";
-
-        return `${emoji} ${text}`; //ONLY MAIN PHENOMENON
+      
+        return `${emoji} ${text}`;
       }
     }
   }
