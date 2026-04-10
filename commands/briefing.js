@@ -15,16 +15,17 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    await interaction.deferReply();
-
     const frames = ["⏳", "🔄", "⏱️", "🔃"];
     let i = 0;
 
     let loading = true
 
-    const spinner = setInterval (() => {
+    const spinner = setInterval(async () => {
       if (!loading) return;
-      interaction.editReply(`${frames[i++ % frames.length]} Fetching briefing...`);
+
+      try {
+        await interaction.editReply(`${frames[i++ % frames.length]} Fetching briefing...`);
+      } catch {}
     }, 1000);
 
     try {
