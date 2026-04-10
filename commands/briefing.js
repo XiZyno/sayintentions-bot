@@ -15,7 +15,7 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    await interaction.reply('⏳ Fetching briefing...');
+    await interaction.deferReply('⏳ Fetching briefing...');
 
     try {
       const icao = interaction.options.getString('icao').toUpperCase();
