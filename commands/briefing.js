@@ -25,7 +25,18 @@ module.exports = {
         return interaction.editReply('❌ Failed to fetch data.');
       }
 
-      const parsed = parseMetar(data.metar);
+      let parsed;
+      if (data.metar &&  typeof data.metar === "string") {
+        parsed = parseMetar(data.metar);
+      } else {
+        parsed = {
+          flightCategory: "UNKNOWN",
+          visibility: "N/A",
+          clouds: [],
+          ceiling: null
+        };
+      }
+
       const categoryColor = getFlightCategoryColor(parsed.flightCategory);
       const precipitation = parsePrecipitation(data.metar);
       const atisParsed = parseAtisRunways(data.atis);

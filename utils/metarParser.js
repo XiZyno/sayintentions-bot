@@ -1,9 +1,21 @@
 function parseMetar(metar) {
+  
   if (!metar || typeof metar !== "string") {
     return {
+      flightCategory: "UNKNOWN",
       visibility: "N/A",
+      windDir: "N/A",
+      windSpeed: 0,
+      windGust: null,
+      pressure: "N/A",
+      temp: "N/A",
+      dew: "N/A",
+      tempF: "N/A",
+      dewF: "N/A",
       clouds: [],
-      ceiling: null
+      ceiling: null,
+      verticalVisibility: null,
+      rvr: null
     };
   }
 
