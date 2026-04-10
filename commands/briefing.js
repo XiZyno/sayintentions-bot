@@ -176,6 +176,7 @@ module.exports = {
         }
 
         cloudText += line + "\n";
+        cloudText = cloudText.trimEnd();
       });
 
       // 🌬 WIND
@@ -260,8 +261,7 @@ ${data.taf || "N/A"}
 ${categoryColor} **${parsed.flightCategory}**
 ${windText}
 👁 Visibility: ${parsed.visibility}
-cloudText += line + "\n";
-cloudText = cloudText.trimEnd();
+${cloudText || ""}
 ${ceilingText ? ceilingText : ""}
 ${vvText ? vvText : ""}
 ${precipText}
