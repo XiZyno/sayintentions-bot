@@ -15,13 +15,25 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    await interaction.editReply('⏳ Fetching briefing...');
+    await interaction.deferReply();
+
+    const frames = ["⏳", "🔄", "⏱️", "🔃"];
+    let i = 0;
+
+    let loading = true
+
+    const spinner = setInterval (() => {
+      if (!loading) return;
+      interaction.editReply(`${frames[i++ % frames.length]} Fetching briefing...`);
+    }, 1000);
 
     try {
       const icao = interaction.options.getString('icao').toUpperCase();
       const data = await getMetar(icao);
 
       if (!data) {
+        loading = false;
+        clearInterval(spinner);
         return interaction.editReply('❌ Failed to fetch data.');
       }
 
@@ -41,14 +53,14 @@ module.exports = {
       const precipitation = data.metar
         ? parsePrecipitation(data.metar)
         : null;
+      
       const atisParsed = parseAtisRunways(data.atis);
 
       const vatsimData = await getVatsimControllers();
 
       let vatsimText = "🗼 VATSIM: No controllers online at this airport";
 
-      if (vatsimData?.controllers) {
-      
+      if (vatsimData?.controllers) {      
         const controllers = vatsimData.controllers.filter(c =>
           c.callsign.startsWith(icao)
         );
@@ -274,12 +286,18 @@ module.exports = {
       lines.push("");
       lines.push(vatsimText);
 
+      loading = false;
+      clearInterval(spinner);
+
       // FINAL OUTPUT
       await interaction.editReply({
         content: lines.join("\n")
       });
 
     } catch (error) {
+      loading = false;
+      clearInterval(spinner);
+
       console.error('❌ Briefing error:', error);
 
       try {
