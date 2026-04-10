@@ -20,12 +20,6 @@ async function getWeather(icao) {
 
 const weatherCache = new Map();
 
-weatherCache.set(icao, {
-  data: airport,
-  metarTime,
-  timestamp: Date.now()
-});
-
 function extractMetarTime(metar) {
   const match = metar.match(/\b(\d{2})(\d{2})(\d{2})Z\b/);
 
@@ -100,34 +94,59 @@ async function getMetar(icao) {
 }
 
 async function getTaf(icao) {
-  const cached = weatherCache.get(icao);
-
-  if (cached) return cached.data;
-
-  const data = await getMetar(icao); // reuse cache logic
-  return data;
+  return await getMetar(icao);
 }
 
 async function getAtis(icao) {
-  const cached = weatherCache.get(icao);
+  return await getMetar(icao);
+}
 
-  if (cached) return cached.data;
-
-  const data = await getMetar(icao);
-  return data;
+const vatsimCache = {
+  data: null,
+  timestamp: 0
 }
 
 async function getVatsimControllers() {
+
+  const now = Date.now();
+
+  // ⏱ 5 minutes cache
+  const TTL = 5 * 60 * 1000;
+
+  if (vatsimCache.data && (now - vatsimCache.timestamp < TTL)) {
+    console.log("VATSIM CACHE HIT");
+    return vatsimCache.data;
+  }
+
   try {
+    console.log("VATSIM API FETCH");
+
     const res = await axios.get('https://apipri.sayintentions.ai/sapi/getVATSIM', {
       params: {
         api_key: apiKey
       }
     });
 
+    if (!res.data && vatsimCache.data) {
+      console.log("VATSIM FALLBACK TO CACHE");
+      return vatsimCache.data;
+    }
+
+    // SAVE TO CACHE
+    vatsimCache.data = res.data;
+    vatsimCache.timestamp = now;
+
     return res.data;
+
   } catch (err) {
     console.error("VATSIM API error:", err.message);
+
+    //fallback if error
+    if (vatsimCache.data) {
+      console.log("VATSIM ERROR -> USING CACHE");
+      return vatsimCache.data;
+    }
+    
     return null;
   }
 }
