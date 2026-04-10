@@ -1,5 +1,5 @@
 function parseMetar(metar) {
-  
+
   if (!metar || typeof metar !== "string") {
     return {
       flightCategory: "UNKNOWN",
@@ -221,17 +221,19 @@ function parseMetar(metar) {
 
   if (cloudMatches) {
     for (const c of cloudMatches) {
+      const match = c.match(/(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?/);
+        
       const type = match[1];
       const height = parseInt(match[2]) * 100;
       const cloudType = match[3] || null;
-
+        
       const oktas = {
         FEW: "1–2/8",
         SCT: "3–4/8",
         BKN: "5–7/8",
         OVC: "8/8"
       }[type];
-
+    
       result.clouds.push({ type, height, oktas, cloudType });
     }
   }

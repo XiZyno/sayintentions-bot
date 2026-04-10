@@ -38,7 +38,9 @@ module.exports = {
       }
 
       const categoryColor = getFlightCategoryColor(parsed.flightCategory);
-      const precipitation = parsePrecipitation(data.metar);
+      const precipitation = data.metar
+        ? parsePrecipitation(data.metar)
+        : null;
       const atisParsed = parseAtisRunways(data.atis);
 
       // ✈ RUNWAY LOGIC
@@ -88,22 +90,57 @@ module.exports = {
       if (parsed.visibility !== "CAVOK") {
 
         if (parsed.clouds && parsed.clouds.length > 0) {
-          cloudText = "☁ Clouds:\n";
-
-          parsed.clouds.forEach(c => {
-            cloudText += `- ${c.type} (${c.oktas}) @ ${c.height} ft\n`;
-          });
-        } else {
-          cloudText = "";
+        
+            parsed.clouds.forEach(c => {
+            
+              // special cases
+              if (c.type === "CLR") {
+                cloudText = "☁ Clouds: Clear skies";
+                return;
+              }
+            
+              if (c.type === "SKC") {
+                cloudText = "☁ Clouds: Sky clear";
+                return;
+              }
+            
+              if (c.type === "NCD") {
+                cloudText = "☁ Clouds: No clouds detected";
+                return;
+              }
+            
+              if (c.type === "NSC") {
+                cloudText = "☁ Clouds: No significant clouds";
+                return;
+              }
+            
+              // normal clouds
+              if (!cloudText) {
+                cloudText = "☁ Clouds:\n";
+              }
+            
+              let line = `- ${c.type} (${c.oktas}) @ ${c.height} ft`;
+            
+              const cloudTypeMap = {
+                CB: "cumulonimbus",
+                TCU: "towering cumulus"
+              };
+            
+              if (c.cloudType) {
+                const fullName = cloudTypeMap[c.cloudType] || c.cloudType;
+                line += ` with ${fullName}`;
+              }
+            
+              cloudText += line + "\n";
+            });
+          }
+        
+          // ceiling only if exists
+          if (parsed.ceiling) {
+            ceilingText = `📉 Ceiling: ${parsed.ceiling} ft`;
+          }
         }
-
-        if (parsed.ceiling) {
-          ceilingText = `📉 Ceiling: ${parsed.ceiling} ft`;
-        } else {
-          ceilingText = "";
-        }
-      }
-
+      
       parsed.clouds.forEach(c => {
 
         if (c.type === "CLR") {
@@ -197,7 +234,7 @@ module.exports = {
 
       let vvText = "";
 
-      if (parsed.verticalVisibility !== null && parsed.verticalVisibility !== undefined) {
+      if (Number.isFinite(parsed.verticalVisibility)) {
         vvText = `🌫 Vertical visibility: ${parsed.verticalVisibility} ft`;
       }
 
@@ -224,7 +261,6 @@ ${categoryColor} **${parsed.flightCategory}**
 ${windText}
 👁 Visibility: ${parsed.visibility}
 ${cloudText ? "\n" + cloudText : ""}
-🌫 Vertical visibility: ${parsed.verticalVisibility}
 ${vvText ? vvText : ""}
 ${precipText}
 🌡 Temperature: ${parsed.temp}°C (${parsed.tempF}°F) / Dewpoint: ${parsed.dew}°C (${parsed.dewF}°F)
