@@ -37,6 +37,7 @@ client.once('clientReady', () => {
 });
 
 client.on('interactionCreate', async interaction => {
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
@@ -44,8 +45,18 @@ client.on('interactionCreate', async interaction => {
 
   try {
     await command.execute(interaction);
+
   } catch (error) {
-    console.error('❌ ERROR during execute:', error);
+    console.error(error);
+
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply('❌ Error executing command.');
+    } else {
+      await interaction.reply({
+        content: '❌ Error executing command.',
+        ephemeral: true
+      });
+    }
   }
 });
 
