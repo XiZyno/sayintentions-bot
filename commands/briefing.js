@@ -43,6 +43,27 @@ module.exports = {
         : null;
       const atisParsed = parseAtisRunways(data.atis);
 
+      const vatsimData = await getVatsimControllers();
+
+      let vatsimText = "🗼 VATSIM: No controllers online at this airport";
+
+      if (vatsimData?.controllers) {
+      
+        const controllers = vatsimData.controllers.filter(c =>
+          c.callsign.startsWith(icao)
+        );
+      
+        if (controllers.length > 0) {
+          vatsimText = "🗼 VATSIM:\n";
+        
+          controllers.forEach(c => {
+            vatsimText += `- ${c.callsign} (${c.frequency})\n`;
+          });
+        
+          vatsimText = vatsimText.trimEnd();
+        }
+      }
+
       // ✈ RUNWAY LOGIC
       let runwayText = "🛬 Active runway: Runway in use not reported, ask an ATC";
 
@@ -251,6 +272,7 @@ module.exports = {
 
       // VATSIM ATC
       lines.push("");
+      lines.push(vatsimText);
 
       // FINAL OUTPUT
       await interaction.editReply({
@@ -263,26 +285,6 @@ module.exports = {
       try {
         await interaction.editReply('❌ Something went wrong.');
       } catch {}
-    }
-    const vatsimData = await getVatsimControllers();
-
-    let vatsimText = "🗼 VATSIM: No controllers online at this airport";
-
-    if (vatsimData?.controllers) {
-    
-      const controllers = vatsimData.controllers.filter(c =>
-        c.callsign.startsWith(icao)
-      );
-    
-      if (controllers.length > 0) {
-        vatsimText = "🗼 VATSIM:\n";
-      
-        controllers.forEach(c => {
-          vatsimText += `- ${c.callsign} (${c.frequency})\n`;
-        });
-      
-        vatsimText = vatsimText.trimEnd();
-      }
     }
   }
 };
