@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { getMetar } = require('../services/sayintentions');
+const { getMetar, getVatsimControllers } = require('../services/sayintentions');
 const { parseMetar, getFlightCategoryColor, parsePrecipitation } = require('../utils/metarParser');
 const { parseAtisRunways } = require('../utils/atisParser');
 
