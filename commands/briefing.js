@@ -38,10 +38,10 @@ module.exports = {
         return interaction.editReply('❌ Failed to fetch data from API.');
       }
 
-      if (!data.error === "NO_AIRPORT") {
+      if (data.error === "NO_AIRPORT") {
         loading = false;
         clearInterval(spinner);
-        return interaction.editReply('❌ SayIntentions does not cover (${icao}) ATIS.');
+        return interaction.editReply(`❌ SayIntentions does not cover (${icao}) ATIS.`);
       }
 
 
@@ -76,7 +76,7 @@ module.exports = {
           TWR: 3
         };
 
-        const shortIcao = icao.startswith("K") ? icao.slice(1) : icao;
+        const shortIcao = icao.startsWith("K") ? icao.slice(1) : icao;
 
         const controllers = vatsimData
           .filter(c =>
