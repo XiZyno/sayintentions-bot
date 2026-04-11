@@ -76,8 +76,13 @@ module.exports = {
           TWR: 3
         };
 
+        const shortIcao = icao.startswith("K") ? icao.slice(1) : icao;
+
         const controllers = vatsimData
-          .filter(c => c.callsign.startsWith(icao))
+          .filter(c =>
+             c.callsign.startsWith(icao) ||
+             c.callsign.startsWith(shortIcao)
+          )
           .map(c => c.callsign)
           .sort((a, b) => {
             const getType = cs => cs.split("_")[1] || "";
