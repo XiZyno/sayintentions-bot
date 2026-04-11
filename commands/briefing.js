@@ -2,7 +2,17 @@ const { SlashCommandBuilder } = require('discord.js');
 const { getMetar, getVatsimControllers } = require('../services/sayintentions');
 const { parseMetar, getFlightCategoryColor, parsePrecipitation } = require('../utils/metarParser');
 const { parseAtisRunways } = require('../utils/atisParser');
-
+const iataMap = {
+  YSSY: "SY",
+  YMML: "ML",
+  YBBN: "BNE",
+  YPPH: "PER",
+  YPAD: "ADL",
+  YBCG: "OOL",
+  YSCB: "CBR",
+  YBTL: "TSV",
+  YPDN: "DRW"
+};
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -70,23 +80,38 @@ module.exports = {
 
       if (Array.isArray(vatsimData)) {
 
-        const priority = {
-          DEL: 1,
-          GND: 2,
-          TWR: 3
-        };
+        const prefixes = [icao];
 
-        const shortIcao = icao.startsWith("K") ? icao.slice(1) : icao;
+        // USA / Canada ATCs
+        if (/^[KC]/.test(icao)) {
+          prefixes.push(icao.slice(1))
+        }
+
+        // Australia
+        if (iataMap[icao]) {
+          prefixes.push(iataMap[icao]);
+        }
 
         const controllers = vatsimData
           .filter(c =>
-             c.callsign.startsWith(icao) ||
-             c.callsign.startsWith(shortIcao)
+            prefixes.some(p => c.callsign.startsWith(p))
           )
           .map(c => c.callsign)
           .sort((a, b) => {
-            const getType = cs => cs.split("_")[1] || "";
-            return (priority[getType(a)] || 99) - (priority[getType(b)] || 99);
+            const getType = cs => {
+              const parts = cs.split("_");
+              return parts[parts.length -1] || "";
+            };
+            
+            const priority = {
+              DEL: 1,
+              GND: 2,
+              TWR: 3,
+              APP: 4,
+              CTR: 5
+            };
+
+            return (priority[getType(a)] || 99) - (priority[getType(b)] || 99)
           });
 
         if (controllers.length > 0) {
